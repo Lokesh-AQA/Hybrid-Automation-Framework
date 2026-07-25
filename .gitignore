@@ -1,0 +1,15 @@
+/target/
+# Maven Build Output
+target/
+
+# TestNG Reports
+test-output/
+
+# Screenshots
+Screenshots/
+
+# Log Files
+*.log
+
+# Excel Temporary Files
+~$*.xlsx
