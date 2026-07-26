@@ -8,7 +8,7 @@ import utils.FrameworkLogger;
 import utils.FrameworkStatistics;
 import utils.ScreenshotUtils;
 
-public class BaseTest {
+public class BaseClass {
 
     protected KeywordExecutor keywordExecutor;
 

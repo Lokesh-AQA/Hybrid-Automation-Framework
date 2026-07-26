@@ -4,7 +4,7 @@ import org.testng.annotations.Test;
 import model.TestStep;
 import utils.ExcelUtils;
 
-public class KeywordDrivenTest extends BaseTest {
+public class KeywordDrivenTest extends BaseClass {
 
 	@Test(description = "Executes the enabled keyword-driven Excel test steps")
 	public void executeKeywordDrivenScenario() {
