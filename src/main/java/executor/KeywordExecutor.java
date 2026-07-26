@@ -17,8 +17,6 @@ public class KeywordExecutor {
 
 	public KeywordExecutor() {
 
-		keywordMap.put("openbrowser", step -> keyword.openBrowser());
-
 		keywordMap.put("navigate", step -> keyword.navigate(step.getTestData()));
 
 		keywordMap.put("input", step -> keyword.input(step.getTestData(), step.getObjectName()));
@@ -50,8 +48,6 @@ public class KeywordExecutor {
 		keywordMap.put("verifyattribute", step -> keyword.verifyAttribute(step.getTestData(), step.getObjectName()));
 
 		keywordMap.put("switchtab", step -> keyword.switchTab(step.getTestData()));
-
-		keywordMap.put("closebrowser", step -> keyword.closeBrowser());
 
 		keywordMap.put("getattribute", step -> {
 
