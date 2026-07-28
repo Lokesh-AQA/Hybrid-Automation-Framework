@@ -3,13 +3,26 @@ package utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class FrameworkLogger {
+public final class FrameworkLogger {
 
 	private static final Logger logger = LogManager.getLogger(FrameworkLogger.class);
 
+	// Prevent instantiation
+	private FrameworkLogger() {
+	}
+
+	// ===========================
+	// Generic Log Methods
+	// ===========================
+
 	// INFO
 	public static void info(String message) {
-		logger.info(message);
+		logger.info("[INFO] " + message);
+	}
+
+	// STEP
+	public static void step(String message) {
+		logger.info("[STEP] " + message);
 	}
 
 	// PASS
@@ -17,9 +30,14 @@ public class FrameworkLogger {
 		logger.info("[PASS] " + message);
 	}
 
-	// FAIL
+	// FAIL (Business/Test Failure)
 	public static void fail(String message) {
 		logger.error("[FAIL] " + message);
+	}
+
+	// ERROR (Framework/Infrastructure Failure)
+	public static void error(String message) {
+		logger.error("[ERROR] " + message);
 	}
 
 	// WARNING
@@ -29,15 +47,19 @@ public class FrameworkLogger {
 
 	// DEBUG
 	public static void debug(String message) {
-		logger.debug(message);
+		logger.debug("[DEBUG] " + message);
 	}
 
 	// ===========================
-	// Framework Log Methods
+	// Keyword Specific Log Methods
 	// ===========================
 
 	public static void browserOpened(String browser) {
 		pass(browser + " Browser Opened Successfully.");
+	}
+
+	public static void browserClosed() {
+		pass("Browser Closed Successfully.");
 	}
 
 	public static void urlLaunched(String url) {
@@ -52,18 +74,11 @@ public class FrameworkLogger {
 		pass(element + " Clicked Successfully.");
 	}
 
-	public static void browserClosed() {
-		pass("Browser Closed Successfully.");
-	}
-
 	public static void elementCleared(String element) {
 		pass(element + " Cleared Successfully.");
-		
 	}
 
-	public static void pressKey(String testData) {
-		pass(testData + " Key Entered.");
-		
+	public static void keyPressed(String key) {
+		pass(key + " Key Pressed.");
 	}
-
 }

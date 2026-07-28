@@ -16,42 +16,46 @@ import utils.ScreenshotUtils;
 
 public class BaseClass {
 
-    protected KeywordExecutor keywordExecutor;
+	protected KeywordExecutor keywordExecutor;
 
-    @BeforeMethod
-    @Parameters("browser")
-    public void setUp(@Optional("") String browser, Method method) {
+	@BeforeMethod
+	@Parameters("browser")
+	public void setUp(@Optional("") String browser, Method method) {
 
-        // Use config.properties if browser is not passed from TestNG
-        if (browser == null || browser.trim().isEmpty()) {
-            browser = ConfigUtils.getRequiredProperty("browser");
-        }
+		// Use config.properties if browser is not passed from TestNG
+		if (browser == null || browser.trim().isEmpty()) {
+			browser = ConfigUtils.getRequiredProperty("browser");
+		}
 
-        LogContext.setTestName(method.getName());
-        LogContext.setThreadId();
-        LogContext.setBrowser(browser);
+		LogContext.setTestName(method.getName());
+		LogContext.setThreadId();
+		LogContext.setBrowser(browser);
 
-        FrameworkStatistics.reset();
-        FrameworkStatistics.startExecution();
-        ScreenshotUtils.resetCounter();
+		FrameworkStatistics.reset();
+		FrameworkStatistics.startExecution();
+		ScreenshotUtils.resetCounter();
 
-        FrameworkLogger.info("Framework Started");
+		FrameworkLogger.info("Framework Started");
 
-        keywordExecutor = new KeywordExecutor();
-        keywordExecutor.openBrowser(browser);
-    }
+		keywordExecutor = new KeywordExecutor();
+		keywordExecutor.openBrowser(browser);
+	}
 
-    @AfterMethod(alwaysRun = true)
-    public void tearDown() {
+	@AfterMethod(alwaysRun = true)
+	public void tearDown() {
 
-        try {
-            if (keywordExecutor != null) {
-                keywordExecutor.closeBrowser();
-            }
-        } finally {
-            FrameworkStatistics.endExecution();
-            FrameworkStatistics.printSummary();
-            LogContext.clear();
-        }
-    }
+		try {
+
+			
+
+			if (keywordExecutor != null) {
+				keywordExecutor.closeBrowser();
+				
+			}
+		} finally {
+			FrameworkStatistics.endExecution();
+			FrameworkStatistics.printSummary();
+			LogContext.clear();
+		}
+	}
 }

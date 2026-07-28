@@ -139,11 +139,11 @@
 		}
 	
 	    public void pressKey(String testData) {
-	
-			KeyboardUtils.pressKey(driver(), testData);
-	
-			FrameworkLogger.pressKey(testData);
-		}
+
+	        KeyboardUtils.pressKey(driver(), testData);
+
+	        FrameworkLogger.keyPressed(testData);
+	    }
 	
 	    // ==========================================================
 	    // Get Keywords
