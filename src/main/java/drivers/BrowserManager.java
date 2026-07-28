@@ -1,6 +1,7 @@
 package drivers;
 
 import org.openqa.selenium.PageLoadStrategy;
+import utils.DriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -14,50 +15,51 @@ import utils.ConfigUtils;
 
 public class BrowserManager {
 
-	public static WebDriver getDriver() {
+	public static WebDriver getDriver(String browser) {
 
-		String browser = ConfigUtils.getRequiredProperty("browser");
+	    WebDriver driver;
+	    
+	    switch (browser.toLowerCase().trim()) {
 
-		switch (browser.toLowerCase()) {
+	    case "chrome":
 
-		case "chrome":
+	        WebDriverManager.chromedriver().setup();
 
-			WebDriverManager.chromedriver().setup();
+	        driver = new ChromeDriver(getChromeOptions());
 
-			WebDriver chromeDriver = new ChromeDriver(getChromeOptions());
+	        break;
 
-			if (!isTrue("browser.headless") && isTrue("browser.maximize"))
-				chromeDriver.manage().window().maximize();
+	    case "edge":
 
-			return chromeDriver;
+	        WebDriverManager.edgedriver().setup();
 
-		case "edge":
+	        driver = new EdgeDriver(getEdgeOptions());
 
-			WebDriverManager.edgedriver().setup();
+	        break;
 
-			WebDriver edgeDriver = new EdgeDriver(getEdgeOptions());
+	    case "firefox":
 
-			if (!isTrue("browser.headless") && isTrue("browser.maximize"))
-				edgeDriver.manage().window().maximize();
+	        WebDriverManager.firefoxdriver().setup();
 
-			return edgeDriver;
+	        driver = new FirefoxDriver(getFirefoxOptions());
 
-		case "firefox":
+	        break;
 
-			WebDriverManager.firefoxdriver().setup();
+	    default:
 
-			WebDriver firefoxDriver = new FirefoxDriver(getFirefoxOptions());
+	    	throw new IllegalArgumentException("Unsupported browser : " + browser);
 
-			if (!isTrue("browser.headless") && isTrue("browser.maximize"))
-				firefoxDriver.manage().window().maximize();
+	    }
 
-			return firefoxDriver;
+	    if (!isTrue("browser.headless") && isTrue("browser.maximize")) {
+	        driver.manage().window().maximize();
+	    }
 
-		default:
+	    // Store driver in ThreadLocal
+	    DriverManager.setDriver(driver);
 
-			throw new RuntimeException("Unsupported Browser : " + browser);
+	    return driver;
 
-		}
 	}
 
 	// ================= Chrome =================

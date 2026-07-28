@@ -17,8 +17,6 @@ public class KeywordExecutor {
 
 	public KeywordExecutor() {
 
-		keywordMap.put("openbrowser", step -> keyword.openBrowser());
-
 		keywordMap.put("navigate", step -> keyword.navigate(step.getTestData()));
 
 		keywordMap.put("input", step -> keyword.input(step.getTestData(), step.getObjectName()));
@@ -51,8 +49,6 @@ public class KeywordExecutor {
 
 		keywordMap.put("switchtab", step -> keyword.switchTab(step.getTestData()));
 
-		keywordMap.put("closebrowser", step -> keyword.closeBrowser());
-
 		keywordMap.put("getattribute", step -> {
 
 			String value = keyword.getAttribute(step.getObjectName(), step.getTestData());
@@ -63,8 +59,8 @@ public class KeywordExecutor {
 		});
 	}
 
-	public void openBrowser() {
-		keyword.openBrowser();
+	public void openBrowser(String browser) {
+		keyword.openBrowser(browser);
 	}
 
 	public void closeBrowser() {
