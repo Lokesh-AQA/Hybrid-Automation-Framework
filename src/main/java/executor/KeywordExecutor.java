@@ -59,8 +59,8 @@ public class KeywordExecutor {
 		});
 	}
 
-	public void openBrowser() {
-		keyword.openBrowser();
+	public void openBrowser(String browser) {
+		keyword.openBrowser(browser);
 	}
 
 	public void closeBrowser() {

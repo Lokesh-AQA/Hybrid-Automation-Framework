@@ -32,12 +32,12 @@
 	    // Browser Keywords
 	    // ==========================================================
 	
-	    public void openBrowser() {
-	
-			BrowserManager.getDriver();
-	
-			FrameworkLogger.browserOpened(ConfigUtils.getProperty("browser"));
-		}
+	    public void openBrowser(String browser) {
+
+	        BrowserManager.getDriver(browser);
+
+	        FrameworkLogger.browserOpened(browser);
+	    }
 	
 	    public void navigate(String urlKey) {
 	

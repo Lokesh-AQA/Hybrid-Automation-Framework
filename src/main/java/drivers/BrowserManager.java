@@ -15,13 +15,11 @@ import utils.ConfigUtils;
 
 public class BrowserManager {
 
-	public static WebDriver getDriver() {
-
-	    String browser = ConfigUtils.getRequiredProperty("browser");
+	public static WebDriver getDriver(String browser) {
 
 	    WebDriver driver;
-
-	    switch (browser.toLowerCase()) {
+	    
+	    switch (browser.toLowerCase().trim()) {
 
 	    case "chrome":
 
@@ -49,7 +47,7 @@ public class BrowserManager {
 
 	    default:
 
-	        throw new RuntimeException("Unsupported Browser : " + browser);
+	    	throw new IllegalArgumentException("Unsupported browser : " + browser);
 
 	    }
 
@@ -60,7 +58,7 @@ public class BrowserManager {
 	    // Store driver in ThreadLocal
 	    DriverManager.setDriver(driver);
 
-	    return DriverManager.getDriver();
+	    return driver;
 
 	}
 
