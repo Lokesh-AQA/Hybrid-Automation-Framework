@@ -4,10 +4,14 @@
 
 <suite name="SingleBrowserSuite">
 
-    <test name="Regression Test">
-        <classes>
-            <class name="tests.KeywordDrivenTest"/>
-        </classes>
-    </test>
+	<listeners>
+		<listener class-name="listeners.FrameworkListener" />
+	</listeners>
+
+	<test name="Functional Test">
+		<classes>
+			<class name="tests.KeywordDrivenTest" />
+		</classes>
+	</test>
 
 </suite>
