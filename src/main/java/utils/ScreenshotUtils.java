@@ -15,10 +15,18 @@ public class ScreenshotUtils {
     private static final ThreadLocal<Integer> screenshotCounter =
             ThreadLocal.withInitial(() -> 1);
 
-    public static void capture(WebDriver driver, String keywordName, String status) {
+    /**
+     * Captures a screenshot and returns its absolute file path.
+     *
+     * @param driver WebDriver instance
+     * @param keywordName Name of the keyword or test
+     * @param status Pass or Fail
+     * @return Screenshot absolute path, or null if capture fails
+     */
+    public static String capture(WebDriver driver, String keywordName, String status) {
 
         if (driver == null) {
-            return;
+            return null;
         }
 
         try {
@@ -27,30 +35,31 @@ public class ScreenshotUtils {
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
-            // Pass / Fail Folder
-            File folder = new File("Screenshots/" + status);
+            File folder = new File("Screenshots" + File.separator + status);
 
             if (!folder.exists()) {
                 folder.mkdirs();
             }
 
-            // 001, 002, 003...
             int count = screenshotCounter.get();
             String sequence = String.format("%03d", count);
             screenshotCounter.set(count + 1);
 
-            // Screenshot Name
             String fileName = sequence + "_" + keywordName + "_" + timeStamp + ".png";
 
             File destinationFile = new File(folder, fileName);
 
             FileUtils.copyFile(source, destinationFile);
 
+            // Return the screenshot path for Extent Report
+            return destinationFile.getAbsolutePath();
+
         } catch (Exception e) {
 
             FrameworkLogger.fail("Unable to Capture Screenshot.");
             FrameworkLogger.debug(e.getMessage());
 
+            return null;
         }
     }
 
