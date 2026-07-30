@@ -11,8 +11,6 @@ public class ExtentSuiteListener implements ISuiteListener {
 	@Override
 	public void onStart(ISuite suite) {
 
-		System.out.println("========== EXTENT SUITE START ==========");
-
 		FrameworkLogger.info("========================================");
 		FrameworkLogger.info("Extent Report Initialization Started");
 		FrameworkLogger.info("Suite : " + suite.getName());
@@ -25,8 +23,6 @@ public class ExtentSuiteListener implements ISuiteListener {
 	@Override
 	public void onFinish(ISuite suite) {
 		
-		System.out.println("========== EXTENT SUITE FINISH ==========");
-
 		FrameworkLogger.info("========================================");
 		FrameworkLogger.info("Flushing Extent Report");
 		FrameworkLogger.info("Suite : " + suite.getName());

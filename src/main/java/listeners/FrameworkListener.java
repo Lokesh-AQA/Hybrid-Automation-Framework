@@ -27,6 +27,7 @@ public class FrameworkListener implements ITestListener {
 				.createTest(result.getTestContext().getName() + " [" + browser + "]");
 
 		ExtentTestManager.setTest(test);
+		ExtentTestManager.resetStepNumber();
 
 		test.log(Status.INFO, "Test Execution Started");
 
