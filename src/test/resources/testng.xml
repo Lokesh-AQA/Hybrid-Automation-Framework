@@ -6,6 +6,7 @@
 
 	<listeners>
 		<listener class-name="listeners.FrameworkListener" />
+		<listener class-name="listeners.ExtentSuiteListener" />
 	</listeners>
 
 	<test name="Functional Test">

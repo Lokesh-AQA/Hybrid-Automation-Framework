@@ -5,7 +5,6 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 
@@ -17,108 +16,103 @@ import utils.ScreenshotUtils;
 
 public class FrameworkListener implements ITestListener {
 
-    private ExtentReports extent;
+	@Override
+	public void onTestStart(ITestResult result) {
 
-    @Override
-    public void onStart(ITestContext context) {
+		FrameworkLogger.step("Listener : Test Started : " + result.getName());
 
-        extent = ExtentManager.getExtentReports();
+		String browser = result.getTestContext().getCurrentXmlTest().getParameter("browser");
 
-        FrameworkLogger.info("========================================");
-        FrameworkLogger.info("Suite Started : " + context.getSuite().getName());
-        FrameworkLogger.info("Test Started  : " + context.getName());
-        FrameworkLogger.info("========================================");
-    }
+		ExtentTest test = ExtentManager.getExtentReports()
+				.createTest(result.getTestContext().getName() + " [" + browser + "]");
 
-    @Override
-    public void onTestStart(ITestResult result) {
+		ExtentTestManager.setTest(test);
 
-        FrameworkLogger.step("Listener : Test Started : " + result.getName());
+		test.log(Status.INFO, "Test Execution Started");
 
-        ExtentTest test = extent.createTest(result.getName());
+		System.out.println("Creating Extent Test : " + result.getTestContext().getName());
+	}
 
-        ExtentTestManager.setTest(test);
+	@Override
+	public void onTestSuccess(ITestResult result) {
 
-        test.log(Status.INFO, "Test Execution Started");
-    }
+		FrameworkLogger.pass("Listener : Test Passed : " + result.getName());
 
-    @Override
-    public void onTestSuccess(ITestResult result) {
+		if (ExtentTestManager.getTest() != null) {
+			ExtentTestManager.getTest().pass("Test Passed");
+			ExtentTestManager.unload();
+		}
+	}
 
-        FrameworkLogger.pass("Listener : Test Passed : " + result.getName());
+	@Override
+	public void onTestFailure(ITestResult result) {
 
-        ExtentTestManager.getTest().pass("Test Passed");
-    }
+		FrameworkLogger.fail("Listener : Test Failed : " + result.getName());
 
-    @Override
-    public void onTestFailure(ITestResult result) {
+		Throwable throwable = result.getThrowable();
 
-        FrameworkLogger.fail("Listener : Test Failed : " + result.getName());
+		if (throwable != null) {
 
-        Throwable throwable = result.getThrowable();
+			FrameworkLogger.error("Reason : " + throwable.getMessage());
 
-        if (throwable != null) {
+			if (ExtentTestManager.getTest() != null) {
+				
+				ExtentTestManager.getTest().fail(throwable);
+			}
 
-            FrameworkLogger.error("Reason : " + throwable.getMessage());
+		}
 
-            ExtentTestManager.getTest().fail(throwable);
+		WebDriver driver = DriverManager.getDriver();
 
-        }
+		if (driver != null) {
 
-        WebDriver driver = DriverManager.getDriver();
+			try {
 
-        if (driver != null) {
+				String screenshotPath = ScreenshotUtils.capture(driver, result.getName(), "Fail");
 
-            try {
+				if (screenshotPath != null) {
 
-                String screenshotPath =
-                        ScreenshotUtils.capture(driver, result.getName(), "Fail");
+					if (ExtentTestManager.getTest() != null) {
+						
+					    ExtentTestManager.getTest().addScreenCaptureFromPath(screenshotPath);
+					}
 
-                if (screenshotPath != null) {
+				}
 
-                    ExtentTestManager.getTest()
-                            .addScreenCaptureFromPath(screenshotPath);
+			} catch (Exception e) {
 
-                }
+				FrameworkLogger.warn("Unable to capture failure screenshot : " + e.getMessage());
 
-            } catch (Exception e) {
+			}
 
-                FrameworkLogger.warn(
-                        "Unable to capture failure screenshot : "
-                                + e.getMessage());
+		} else {
 
-            }
+			FrameworkLogger.warn("Screenshot skipped. Driver is null.");
 
-        } else {
+		}
 
-            FrameworkLogger.warn("Screenshot skipped. Driver is null.");
+		ExtentTestManager.unload();
 
-        }
+	}
 
-    }
+	@Override
+	public void onTestSkipped(ITestResult result) {
 
-    @Override
-    public void onTestSkipped(ITestResult result) {
+		FrameworkLogger.warn("Listener : Test Skipped : " + result.getName());
 
-        FrameworkLogger.warn("Listener : Test Skipped : " + result.getName());
+		if (ExtentTestManager.getTest() != null) {
+			
+			ExtentTestManager.getTest().skip("Test Skipped");
+			ExtentTestManager.unload();
+		}
+	}
 
-        ExtentTestManager.getTest().skip("Test Skipped");
-    }
+	@Override
+	public void onFinish(ITestContext context) {
 
-    @Override
-    public void onFinish(ITestContext context) {
-
-        if (extent != null) {
-
-            extent.flush();
-
-        }
-
-        ExtentTestManager.unload();
-
-        FrameworkLogger.info("========================================");
-        FrameworkLogger.info("Test Finished : " + context.getName());
-        FrameworkLogger.info("Suite Finished : " + context.getSuite().getName());
-        FrameworkLogger.info("========================================");
-    }
+		FrameworkLogger.info("========================================");
+		FrameworkLogger.info("Test Finished : " + context.getName());
+		FrameworkLogger.info("Suite Finished : " + context.getSuite().getName());
+		FrameworkLogger.info("========================================");
+	}
 }

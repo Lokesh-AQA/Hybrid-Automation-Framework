@@ -15,7 +15,7 @@ public final class ExtentManager {
     private ExtentManager() {
     }
 
-    public static ExtentReports getExtentReports() {
+    public static synchronized ExtentReports getExtentReports() {
 
         if (extent == null) {
 
