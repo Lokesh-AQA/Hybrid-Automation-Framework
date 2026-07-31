@@ -7,6 +7,7 @@ import utils.ConfigUtils;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
+import utils.GitUtils;
 
 public final class ExtentManager {
 
@@ -50,11 +51,24 @@ public final class ExtentManager {
             extent.setSystemInfo("Author",
                     ConfigUtils.getRequiredProperty("author"));
 
-            extent.setSystemInfo("Browser",
-                    ConfigUtils.getRequiredProperty("browser"));
-
             extent.setSystemInfo("Testing Type",
                     ConfigUtils.getRequiredProperty("testing.type"));
+
+            extent.setSystemInfo("Environment",
+                    ConfigUtils.getRequiredProperty("environment"));
+
+            extent.setSystemInfo("Application",
+                    ConfigUtils.getRequiredProperty("application.name"));
+
+            extent.setSystemInfo("Build Version",
+                    ConfigUtils.getRequiredProperty("build.version"));
+            
+            extent.setSystemInfo("Git Branch",
+                    GitUtils.getBranchName());
+            
+            extent.setSystemInfo("Git Commit",
+                    GitUtils.getCommitId());
+
             extent.setSystemInfo("Executed By", System.getProperty("user.name"));
             extent.setSystemInfo("Operating System", System.getProperty("os.name"));
             extent.setSystemInfo("Java Version", System.getProperty("java.version"));

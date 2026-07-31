@@ -7,7 +7,8 @@ import org.testng.ITestResult;
 import utils.ConfigUtils;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
-
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import reports.ExtentManager;
 import reports.ExtentTestManager;
 import utils.DriverManager;
@@ -15,6 +16,8 @@ import utils.FrameworkLogger;
 import utils.ScreenshotUtils;
 
 public class FrameworkListener implements ITestListener {
+	
+	private static final Set<String> EXECUTED_BROWSERS = new ConcurrentSkipListSet<>();
 
 	@Override
 	public void onTestStart(ITestResult result) {
@@ -28,7 +31,10 @@ public class FrameworkListener implements ITestListener {
 		if (browser == null || browser.isBlank()) {
 		    browser = ConfigUtils.getRequiredProperty("browser");
 		}
-
+		
+		//For parallel execution, show multiple browser in Extent_Report
+		EXECUTED_BROWSERS.add(browser);
+		
 		ExtentTest test = ExtentManager.getExtentReports()
 				.createTest(result.getTestContext().getName() + " [" + browser + "]");
 		
@@ -128,5 +134,10 @@ public class FrameworkListener implements ITestListener {
 		FrameworkLogger.info("Test Finished : " + context.getName());
 		FrameworkLogger.info("Suite Finished : " + context.getSuite().getName());
 		FrameworkLogger.info("========================================");
+	}
+	
+	public static String getExecutedBrowsers() {
+
+	    return String.join(", ", EXECUTED_BROWSERS);
 	}
 }
