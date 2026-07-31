@@ -3,7 +3,7 @@ package utils;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import reports.ExtentManager;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -35,7 +35,12 @@ public class ScreenshotUtils {
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
-            File folder = new File("Screenshots" + File.separator + status);
+            File folder = new File(
+                    ExtentManager.getReportDirectory()
+                    + File.separator
+                    + "Screenshots"
+                    + File.separator
+                    + status);
 
             if (!folder.exists()) {
                 folder.mkdirs();

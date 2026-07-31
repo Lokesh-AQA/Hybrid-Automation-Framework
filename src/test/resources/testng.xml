@@ -10,10 +10,11 @@
 	</listeners>
 
 	<test name="Functional Test">
-		<classes>
-			<class name="tests.KeywordDrivenTest" />
-		</classes>
-	</test>
+    <classes>
+        <class name="tests.KeywordDrivenTest"/>
+        <class name="tests.KeywordDrivenTest2"/>
+    </classes>
+</test>
 
 </suite>
 
