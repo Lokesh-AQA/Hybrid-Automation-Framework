@@ -3,7 +3,7 @@ package reports;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import utils.ConfigUtils;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
@@ -46,6 +46,15 @@ public final class ExtentManager {
             extent.setSystemInfo("Framework", "Framework01");
             extent.setSystemInfo("Automation", "Selenium + TestNG");
             extent.setSystemInfo("Language", "Java");
+
+            extent.setSystemInfo("Author",
+                    ConfigUtils.getRequiredProperty("author"));
+
+            extent.setSystemInfo("Browser",
+                    ConfigUtils.getRequiredProperty("browser"));
+
+            extent.setSystemInfo("Testing Type",
+                    ConfigUtils.getRequiredProperty("testing.type"));
             extent.setSystemInfo("Executed By", System.getProperty("user.name"));
             extent.setSystemInfo("Operating System", System.getProperty("os.name"));
             extent.setSystemInfo("Java Version", System.getProperty("java.version"));

@@ -4,7 +4,7 @@ import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-
+import utils.ConfigUtils;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 
@@ -21,17 +21,30 @@ public class FrameworkListener implements ITestListener {
 
 		FrameworkLogger.step("Listener : Test Started : " + result.getName());
 
-		String browser = result.getTestContext().getCurrentXmlTest().getParameter("browser");
+		String browser = result.getTestContext()
+		        .getCurrentXmlTest()
+		        .getParameter("browser");
+
+		if (browser == null || browser.isBlank()) {
+		    browser = ConfigUtils.getRequiredProperty("browser");
+		}
 
 		ExtentTest test = ExtentManager.getExtentReports()
 				.createTest(result.getTestContext().getName() + " [" + browser + "]");
+		
+		test.assignAuthor(
+		        ConfigUtils.getRequiredProperty("author"));
+
+		test.assignDevice(browser);
+
+		test.assignCategory(
+		        ConfigUtils.getRequiredProperty("testing.type"));
 
 		ExtentTestManager.setTest(test);
 		ExtentTestManager.resetStepNumber();
 
 		test.log(Status.INFO, "Test Execution Started");
 
-		System.out.println("Creating Extent Test : " + result.getTestContext().getName());
 	}
 
 	@Override
