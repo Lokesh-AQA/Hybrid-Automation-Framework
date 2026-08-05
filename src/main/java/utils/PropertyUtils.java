@@ -31,5 +31,16 @@ public class PropertyUtils {
         return properties.getProperty(key);
 
     }
+    
+    public static String getDisplayName(String objectName) {
+
+        String displayName = properties.getProperty(objectName + ".display");
+
+        if (displayName == null || displayName.isBlank()) {
+            return objectName;
+        }
+
+        return displayName;
+    }
 
 }

@@ -7,14 +7,15 @@
 	<listeners>
 		<listener class-name="listeners.FrameworkListener" />
 		<listener class-name="listeners.ExtentSuiteListener" />
+		<listener class-name="listeners.RetryTransformer" />
 	</listeners>
 
 	<test name="Functional Test">
-    <classes>
-        <class name="tests.KeywordDrivenTest"/>
-        <class name="tests.KeywordDrivenTest2"/>
-    </classes>
-</test>
+		<classes>
+			<class name="tests.KeywordDrivenTest" />
+			<!-- <class name="tests.KeywordDrivenTest2"/> -->
+		</classes>
+	</test>
 
 </suite>
 

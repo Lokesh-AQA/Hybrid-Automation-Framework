@@ -7,86 +7,131 @@ import reports.ExtentTestManager;
 
 public final class FrameworkLogger {
 
-    private static final Logger logger = LogManager.getLogger(FrameworkLogger.class);
+	private static final Logger logger = LogManager.getLogger(FrameworkLogger.class);
 
-    // Prevent instantiation
-    private FrameworkLogger() {
-    }
+	// Prevent instantiation
+	private FrameworkLogger() {
+	}
 
-    // ===========================
-    // Generic Log Methods
-    // ===========================
+	// ===========================
+	// Generic Log Methods
+	// ===========================
 
-    // INFO
-    public static void info(String message) {
-        logger.info("[INFO] " + message);
-        ExtentTestManager.info(message);
-    }
+	// INFO
+	public static void info(String message) {
 
-    // STEP
-    public static void step(String message) {
-        logger.info("[STEP] " + message);
-        ExtentTestManager.info("STEP : " + message);
-    }
+	    logger.info("[INFO] " + message);
 
-    // PASS
-    public static void pass(String message) {
-        logger.info("[PASS] " + message);
-        ExtentTestManager.pass(message);
-    }
+	    ExtentTestManager.info(message);
 
-    // FAIL (Business/Test Failure)
-    public static void fail(String message) {
-        logger.error("[FAIL] " + message);
-        ExtentTestManager.fail(message);
-    }
+	    AllureManager.logInfo(message);
 
-    // ERROR (Framework/Infrastructure Failure)
-    public static void error(String message) {
-        logger.error("[ERROR] " + message);
-        ExtentTestManager.fail(message);
-    }
+	}
 
-    // WARNING
-    public static void warn(String message) {
-        logger.warn("[WARN] " + message);
-        ExtentTestManager.warning(message);
-    }
+	// STEP
+	public static void step(String message) {
 
-    // DEBUG
-    public static void debug(String message) {
-        logger.debug("[DEBUG] " + message);
-    }
+	    logger.info("[STEP] " + message);
 
-    // ===========================
-    // Keyword Specific Log Methods
-    // ===========================
+	    ExtentTestManager.info("STEP : " + message);
 
-    public static void browserOpened(String browser) {
-        pass(browser + " Browser Opened Successfully.");
-    }
+	    AllureManager.step(message);
 
-    public static void browserClosed() {
-        pass("Browser Closed Successfully.");
-    }
+	}
 
-    public static void urlLaunched(String url) {
-        pass("URL Launched Successfully. URL : " + url);
-    }
+	// PASS
+	public static void pass(String message) {
 
-    public static void valueEntered(String field, String value) {
-        pass(field + " Entered Successfully. Value : " + value);
-    }
+	    logger.info("[PASS] " + message);
 
-    public static void elementClicked(String element) {
-        pass(element + " Clicked Successfully.");
-    }
+	    ExtentTestManager.pass(message);
 
-    public static void elementCleared(String element) {
-        pass(element + " Cleared Successfully.");
-    }
+	    AllureManager.logPass(message);
 
-    public static void keyPressed(String key) {
-        pass(key + " Key Pressed.");
-    }
+	}
+
+	// FAIL (Business/Test Failure)
+	public static void fail(String message) {
+
+	    logger.error("[FAIL] " + message);
+
+	    ExtentTestManager.fail(message);
+
+	    AllureManager.logFail(message);
+
+	}
+
+	// ERROR (Message only)
+	public static void error(String message) {
+
+	    logger.error("[ERROR] " + message);
+
+	    ExtentTestManager.fail(message);
+
+	    AllureManager.logError(message);
+
+	}
+
+	// ERROR (Message + Exception)
+	public static void error(String message, Throwable throwable) {
+
+	    logger.error("[ERROR] " + message, throwable);
+
+	    ExtentTestManager.fail(message);
+
+	    AllureManager.logError(message, throwable);
+
+	}
+
+	// WARNING
+	public static void warn(String message) {
+
+	    logger.warn("[WARN] " + message);
+
+	    ExtentTestManager.warning(message);
+
+	    AllureManager.logWarn(message);
+
+	}
+
+	// DEBUG
+	public static void debug(String message) {
+
+	    logger.debug("[DEBUG] " + message);
+
+	    AllureManager.logDebug(message);
+
+	}
+
+	// ===========================
+	// Keyword Specific Log Methods
+	// ===========================
+
+	public static void browserOpened(String browser) {
+		pass(browser + " Browser Opened Successfully.");
+	}
+
+	public static void browserClosed() {
+		pass("Browser Closed Successfully.");
+	}
+
+	public static void urlLaunched(String url) {
+		pass("URL Launched Successfully. URL : " + url);
+	}
+
+	public static void valueEntered(String field, String value) {
+		pass(field + " Entered Successfully. Value : " + value);
+	}
+
+	public static void elementClicked(String element) {
+		pass(element + " Clicked Successfully.");
+	}
+
+	public static void elementCleared(String element) {
+		pass(element + " Cleared Successfully.");
+	}
+
+	public static void keyPressed(String key) {
+		pass(key + " Key Pressed.");
+	}
 }

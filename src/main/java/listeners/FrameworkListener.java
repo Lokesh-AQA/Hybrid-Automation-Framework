@@ -1,143 +1,166 @@
 package listeners;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import utils.ConfigUtils;
+
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+
+import enums.ScreenshotType;
 import reports.ExtentManager;
 import reports.ExtentTestManager;
+import utils.AllureManager;
+import utils.ConfigUtils;
 import utils.DriverManager;
 import utils.FrameworkLogger;
 import utils.ScreenshotUtils;
 
 public class FrameworkListener implements ITestListener {
-	
-	private static final Set<String> EXECUTED_BROWSERS = new ConcurrentSkipListSet<>();
 
-	@Override
-	public void onTestStart(ITestResult result) {
+    private static final Set<String> EXECUTED_BROWSERS =
+            new ConcurrentSkipListSet<>();
 
-		FrameworkLogger.step("Listener : Test Started : " + result.getName());
+    @Override
+    public void onTestStart(ITestResult result) {
+    	
+    	AllureManager.startTest();
 
-		String browser = result.getTestContext()
-		        .getCurrentXmlTest()
-		        .getParameter("browser");
+        FrameworkLogger.step("Listener : Test Started : " + result.getName());
 
-		if (browser == null || browser.isBlank()) {
-		    browser = ConfigUtils.getRequiredProperty("browser");
-		}
-		
-		//For parallel execution, show multiple browser in Extent_Report
-		EXECUTED_BROWSERS.add(browser);
-		
-		ExtentTest test = ExtentManager.getExtentReports()
-				.createTest(result.getTestContext().getName() + " [" + browser + "]");
-		
-		test.assignAuthor(
-		        ConfigUtils.getRequiredProperty("author"));
+        String browser = result.getTestContext()
+                .getCurrentXmlTest()
+                .getParameter("browser");
 
-		test.assignDevice(browser);
+        if (browser == null || browser.isBlank()) {
+            browser = ConfigUtils.getRequiredProperty("browser");
+        }
 
-		test.assignCategory(
-		        ConfigUtils.getRequiredProperty("testing.type"));
+        // For parallel execution
+        EXECUTED_BROWSERS.add(browser);
 
-		ExtentTestManager.setTest(test);
-		ExtentTestManager.resetStepNumber();
+        ExtentTest test = ExtentManager.getExtentReports()
+                .createTest(result.getTestContext().getName() + " [" + browser + "]");
 
-		test.log(Status.INFO, "Test Execution Started");
+        test.assignAuthor(
+                ConfigUtils.getRequiredProperty("author"));
 
-	}
+        test.assignDevice(browser);
 
-	@Override
-	public void onTestSuccess(ITestResult result) {
+        test.assignCategory(
+                ConfigUtils.getRequiredProperty("testing.type"));
 
-		FrameworkLogger.pass("Listener : Test Passed : " + result.getName());
+        ExtentTestManager.setTest(test);
+        ExtentTestManager.resetStepNumber();
 
-		if (ExtentTestManager.getTest() != null) {
-			ExtentTestManager.getTest().pass("Test Passed");
-			ExtentTestManager.unload();
-		}
-	}
+        test.log(Status.INFO, "Test Execution Started");
+    }
 
-	@Override
-	public void onTestFailure(ITestResult result) {
+    @Override
+    public void onTestSuccess(ITestResult result) {
 
-		FrameworkLogger.fail("Listener : Test Failed : " + result.getName());
+        FrameworkLogger.pass("Listener : Test Passed : " + result.getName());
 
-		Throwable throwable = result.getThrowable();
+        if (ExtentTestManager.getTest() != null) {
+            ExtentTestManager.getTest().pass("Test Passed");
+        }
 
-		if (throwable != null) {
+        ExtentTestManager.unload();
+        
+        AllureManager.stopTest();
+    }
 
-			FrameworkLogger.error("Reason : " + throwable.getMessage());
+    @Override
+    public void onTestFailure(ITestResult result) {
 
-			if (ExtentTestManager.getTest() != null) {
-				
-				ExtentTestManager.getTest().fail(throwable);
-			}
+        FrameworkLogger.fail("Listener : Test Failed : " + result.getName());
 
-		}
+        Throwable throwable = result.getThrowable();
 
-		WebDriver driver = DriverManager.getDriver();
+        if (throwable != null) {
 
-		if (driver != null) {
+            FrameworkLogger.error(
+                    "Reason : " + throwable.getMessage(),
+                    throwable);
 
-			try {
+            if (ExtentTestManager.getTest() != null) {
+                ExtentTestManager.getTest().fail(throwable);
+            }
+        }
 
-				String screenshotPath = ScreenshotUtils.capture(driver, result.getName(), "Fail");
+        WebDriver driver = DriverManager.getDriver();
 
-				if (screenshotPath != null) {
+        if (driver != null) {
 
-					if (ExtentTestManager.getTest() != null) {
-						
-					    ExtentTestManager.getTest().addScreenCaptureFromPath(screenshotPath);
-					}
+            try {
 
-				}
+                String screenshotPath = ScreenshotUtils.capture(
+                        driver,
+                        result.getName(),
+                        ScreenshotType.FAIL);
 
-			} catch (Exception e) {
+                if (screenshotPath != null) {
 
-				FrameworkLogger.warn("Unable to capture failure screenshot : " + e.getMessage());
+                    // Extent Report
+                    if (ExtentTestManager.getTest() != null) {
+                        ExtentTestManager.getTest()
+                                .addScreenCaptureFromPath(screenshotPath);
+                    }
 
-			}
+                    // Allure Report
+                    AllureManager.attachScreenshot(
+                            "Failed Test Screenshot",
+                            screenshotPath);
+                }
 
-		} else {
+            } catch (Exception e) {
 
-			FrameworkLogger.warn("Screenshot skipped. Driver is null.");
+                FrameworkLogger.error(
+                        "Unable to capture failure screenshot.",
+                        e);
 
-		}
+            }
 
-		ExtentTestManager.unload();
+        } else {
 
-	}
+            FrameworkLogger.warn("Screenshot skipped. Driver is null.");
 
-	@Override
-	public void onTestSkipped(ITestResult result) {
+        }
 
-		FrameworkLogger.warn("Listener : Test Skipped : " + result.getName());
+        ExtentTestManager.unload();
+        
+        AllureManager.stopTest();
+    }
 
-		if (ExtentTestManager.getTest() != null) {
-			
-			ExtentTestManager.getTest().skip("Test Skipped");
-			ExtentTestManager.unload();
-		}
-	}
+    @Override
+    public void onTestSkipped(ITestResult result) {
 
-	@Override
-	public void onFinish(ITestContext context) {
+        FrameworkLogger.warn("Listener : Test Skipped : " + result.getName());
 
-		FrameworkLogger.info("========================================");
-		FrameworkLogger.info("Test Finished : " + context.getName());
-		FrameworkLogger.info("Suite Finished : " + context.getSuite().getName());
-		FrameworkLogger.info("========================================");
-	}
-	
-	public static String getExecutedBrowsers() {
+        if (ExtentTestManager.getTest() != null) {
+            ExtentTestManager.getTest().skip("Test Skipped");
+        }
 
-	    return String.join(", ", EXECUTED_BROWSERS);
-	}
+        ExtentTestManager.unload();
+        
+        AllureManager.stopTest();
+    }
+
+    @Override
+    public void onFinish(ITestContext context) {
+
+        FrameworkLogger.info("========================================");
+        FrameworkLogger.info("Test Finished : " + context.getName());
+        FrameworkLogger.info("Suite Finished : " + context.getSuite().getName());
+        FrameworkLogger.info("========================================");
+    }
+
+    public static String getExecutedBrowsers() {
+
+        return String.join(", ", EXECUTED_BROWSERS);
+    }
 }

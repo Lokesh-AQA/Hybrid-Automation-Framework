@@ -65,8 +65,22 @@ public final class ExtentManager {
 		return extent;
 	}
 
-	public static String getReportDirectory() {
-		
-		return reportDirectory;
+	public static synchronized String getReportDirectory() {
+
+	    if (reportDirectory == null) {
+
+	        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+	                .format(new Date());
+
+	        reportDirectory = System.getProperty("user.dir")
+	                + File.separator
+	                + "Reports"
+	                + File.separator
+	                + timestamp;
+
+	        new File(reportDirectory).mkdirs();
+	    }
+
+	    return reportDirectory;
 	}
 }
