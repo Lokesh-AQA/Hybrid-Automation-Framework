@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import enums.ScreenshotType;
 
 public class ScreenshotUtils {
 
@@ -23,7 +24,9 @@ public class ScreenshotUtils {
      * @param status Pass or Fail
      * @return Screenshot absolute path, or null if capture fails
      */
-    public static String capture(WebDriver driver, String keywordName, String status) {
+    public static String capture(WebDriver driver,
+            String keywordName,
+            ScreenshotType status)	 {
 
         if (driver == null) {
             return null;
@@ -40,7 +43,7 @@ public class ScreenshotUtils {
                     + File.separator
                     + "Screenshots"
                     + File.separator
-                    + status);
+                    + status.name());
 
             if (!folder.exists()) {
                 folder.mkdirs();

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Assertion Failure",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*Assertion.*"
+  },
+  {
+    "name": "Element Not Found",
+    "matchedStatuses": ["failed"],
+    "traceRegex": ".*NoSuchElementException.*"
+  },
+  {
+    "name": "Timeout",
+    "matchedStatuses": ["failed"],
+    "traceRegex": ".*TimeoutException.*"
+  },
+  {
+    "name": "Stale Element",
+    "matchedStatuses": ["failed"],
+    "traceRegex": ".*StaleElementReferenceException.*"
+  },
+  {
+    "name": "WebDriver Error",
+    "matchedStatuses": ["broken"],
+    "traceRegex": ".*WebDriverException.*"
+  },
+  {
+    "name": "Framework Error",
+    "matchedStatuses": ["broken"],
+    "traceRegex": ".*RuntimeException.*"
+  }
+]

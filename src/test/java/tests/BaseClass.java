@@ -8,6 +8,7 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 
 import executor.KeywordExecutor;
+import utils.AllureManager;
 import utils.ConfigUtils;
 import utils.FrameworkLogger;
 import utils.FrameworkStatistics;
@@ -33,6 +34,7 @@ public class BaseClass {
 
 		FrameworkStatistics.reset();
 		FrameworkStatistics.startExecution();
+		AllureManager.initialize();
 		ScreenshotUtils.resetCounter();
 
 		FrameworkLogger.info("Framework Started");

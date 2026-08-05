@@ -3,8 +3,11 @@ package executor;
 import java.util.HashMap;
 import java.util.Map;
 
+import enums.ScreenshotType;
 import keywords.Keywords;
 import model.TestStep;
+import reports.ExtentTestManager;
+import utils.AllureManager;
 import utils.ConfigUtils;
 import utils.FrameworkLogger;
 import utils.FrameworkStatistics;
@@ -76,31 +79,77 @@ public class KeywordExecutor {
 			FrameworkStatistics.incrementTotal();
 
 			KeywordAction action = keywordMap.get(keywordName.toLowerCase());
+			
+			//System.out.println("Action = "+ action);
 
 			if (action == null) {
 				throw new IllegalArgumentException("Unknown Keyword : " + keywordName);
 			}
 
+			AllureManager.step(
+			        AllureManager.buildKeywordStep(
+			                keywordName,
+			                step.getObjectName(),
+			                step.getTestData()));
+			
 			action.execute(step);
 
 			FrameworkStatistics.incrementPassed();
 
 			// PASS Screenshot
 			if (keyword.getDriver() != null
-					&& "true".equalsIgnoreCase(ConfigUtils.getProperty("capture.pass.screenshot"))) {
+			        && "true".equalsIgnoreCase(ConfigUtils.getProperty("capture.pass.screenshot"))) {
 
-				ScreenshotUtils.capture(keyword.getDriver(), keywordName, "Pass");
+			    String screenshotPath = ScreenshotUtils.capture(
+			            keyword.getDriver(),
+			            keywordName,
+			            ScreenshotType.PASS);
 
+			    if (screenshotPath != null) {
+
+			        // Extent Report
+			        if (ExtentTestManager.getTest() != null) {
+			            ExtentTestManager.getTest()
+			                    .addScreenCaptureFromPath(screenshotPath);
+			        }
+
+			        // Allure Report
+			        AllureManager.attachScreenshot(
+			                "Screenshot - " +
+			                AllureManager.buildKeywordStep(
+			                        keywordName,
+			                        step.getObjectName(),
+			                        step.getTestData()),
+			                screenshotPath);
+			    }
 			}
 
 		} catch (Exception e) {
 
 			// FAIL Screenshot
 			if (keyword.getDriver() != null
-					&& "true".equalsIgnoreCase(ConfigUtils.getProperty("capture.fail.screenshot"))) {
+			        && "true".equalsIgnoreCase(ConfigUtils.getProperty("capture.fail.screenshot"))) {
 
-				ScreenshotUtils.capture(keyword.getDriver(), keywordName, "Fail");
+			    String screenshotPath = ScreenshotUtils.capture(
+			            keyword.getDriver(),
+			            keywordName,
+			            ScreenshotType.FAIL);
 
+			    if (screenshotPath != null) {
+
+			        if (ExtentTestManager.getTest() != null) {
+			            ExtentTestManager.getTest()
+			                    .addScreenCaptureFromPath(screenshotPath);
+			        }
+
+			        AllureManager.attachScreenshot(
+			                "Failed Screenshot - " +
+			                AllureManager.buildKeywordStep(
+			                        keywordName,
+			                        step.getObjectName(),
+			                        step.getTestData()),
+			                screenshotPath);
+			    }
 			}
 
 			FrameworkLogger.fail("Keyword Failed : " + keywordName);

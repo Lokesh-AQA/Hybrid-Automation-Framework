@@ -6,7 +6,7 @@
 	import org.openqa.selenium.WebDriver;
 	import org.openqa.selenium.WebElement;
 	import org.openqa.selenium.WindowType;
-	
+	import enums.ScreenshotType;
 	import utils.FrameworkLogger;
 	import utils.KeyboardUtils;
 	import utils.LocatorUtils;
@@ -176,7 +176,7 @@
 				FrameworkLogger.info("Expected Title : " + expectedTitle);
 				FrameworkLogger.info("Actual Title : " + actualTitle);
 	
-				ScreenshotUtils.capture(driver(), "verifyTitle", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyTitle", ScreenshotType.FAIL);
 	
 				throw new RuntimeException("Expected Title : " + expectedTitle + " | Actual Title : " + actualTitle);
 			}
@@ -198,7 +198,7 @@
 				FrameworkLogger.info("Expected URL : " + expectedUrl);
 				FrameworkLogger.info("Actual URL   : " + actualUrl);
 	
-				ScreenshotUtils.capture(driver(), "verifyUrl", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyUrl", ScreenshotType.FAIL);
 	
 				throw new RuntimeException("Expected URL : " + expectedUrl + "\nActual URL   : " + actualUrl);
 			}
@@ -224,7 +224,7 @@
 				FrameworkLogger.info("Expected Text : " + expectedText);
 				FrameworkLogger.info("Actual Text   : " + actualText);
 	
-				ScreenshotUtils.capture(driver(), "verifyText", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyText", ScreenshotType.FAIL);
 	
 				throw new RuntimeException("Expected Text : " + expectedText + "\nActual Text   : " + actualText);
 			}
@@ -250,7 +250,7 @@
 				FrameworkLogger.info("Expected Value : " + expectedValue);
 				FrameworkLogger.info("Actual Value   : " + actualValue);
 	
-				ScreenshotUtils.capture(driver(), "verifyValue", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyValue", ScreenshotType.FAIL);
 	
 				throw new RuntimeException("Expected Value : " + expectedValue + "\nActual Value   : " + actualValue);
 			}
@@ -275,7 +275,7 @@
 	
 				FrameworkLogger.fail("Attribute Verification Failed.");
 	
-				ScreenshotUtils.capture(driver(), "verifyAttribute", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyAttribute", ScreenshotType.FAIL);
 	
 				throw new RuntimeException("Attribute '" + attributeName + "' not found for element : " + objectName);
 			}
@@ -295,7 +295,7 @@
 	
 				FrameworkLogger.fail(objectName + " is Not Displayed.");
 	
-				ScreenshotUtils.capture(driver(), "verifyDisplayed", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyDisplayed", ScreenshotType.FAIL);
 	
 				throw new RuntimeException(objectName + " is Not Displayed.");
 			}
@@ -315,7 +315,7 @@
 	
 				FrameworkLogger.fail(objectName + " is Disabled.");
 	
-				ScreenshotUtils.capture(driver(), "verifyEnabled", "Fail");
+				ScreenshotUtils.capture(driver(), "verifyEnabled", ScreenshotType.FAIL);
 	
 				throw new RuntimeException(objectName + " is Disabled.");
 			}
@@ -334,7 +334,7 @@
 			} else {
 	
 				FrameworkLogger.fail(objectName + " is Enabled.");
-				ScreenshotUtils.capture(driver(), objectName, "Fail");
+				ScreenshotUtils.capture(driver(), objectName, ScreenshotType.FAIL);
 	
 				throw new RuntimeException(objectName + " should be disabled.");
 			}
@@ -354,7 +354,7 @@
 	
 				FrameworkLogger.fail(objectName + " is Not Selected.");
 	
-				ScreenshotUtils.capture(driver(), "verifySelected", "Fail");
+				ScreenshotUtils.capture(driver(), "verifySelected", ScreenshotType.FAIL);
 	
 				throw new RuntimeException(objectName + " is Not Selected.");
 			}
