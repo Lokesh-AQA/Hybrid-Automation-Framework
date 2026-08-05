@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Executes keyword-driven test cases using Excel data.","15599","Executes the enabled keyword-driven Excel test steps","SingleBrowserSuite","2026-08-05","passed","2026-08-05","tests.KeywordDrivenTest","Functional Test","tests.KeywordDrivenTest","executeKeywordDrivenScenario"
