@@ -5,16 +5,34 @@
 <suite name="SingleBrowserSuite">
 
 	<listeners>
+
+		<!-- Allure TestNG integration -->
+		<listener class-name="io.qameta.allure.testng.AllureTestNg" />
+
+		<!-- Framework listener -->
 		<listener class-name="listeners.FrameworkListener" />
+
+		<!-- Extent Report -->
 		<listener class-name="listeners.ExtentSuiteListener" />
+
+		<!-- Allure result management -->
+		<listener class-name="listeners.AllureSuiteListener" />
+
+		<!-- Retry -->
 		<listener class-name="listeners.RetryTransformer" />
+
 	</listeners>
 
 	<test name="Functional Test">
+
 		<classes>
+
 			<class name="tests.KeywordDrivenTest" />
+
 			<!-- <class name="tests.KeywordDrivenTest2"/> -->
+
 		</classes>
+
 	</test>
 
 </suite>
