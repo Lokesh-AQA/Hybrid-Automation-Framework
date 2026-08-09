@@ -2,6 +2,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+	<!-- Project Information -->
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>MyFirst</groupId>
@@ -18,7 +19,10 @@
 
 	<dependencies>
 
+		<!-- ================================================== -->
 		<!-- Unit Testing -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -26,14 +30,20 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Selenium -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
 			<version>4.45.0</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Apache POI -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -46,14 +56,20 @@
 			<version>5.5.1</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- WebDriverManager -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>io.github.bonigarcia</groupId>
 			<artifactId>webdrivermanager</artifactId>
 			<version>6.3.2</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Log4j -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
@@ -72,14 +88,20 @@
 			<version>2.25.1</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Commons IO -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.20.0</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- TestNG -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
@@ -87,14 +109,20 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Extent Report -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>com.aventstack</groupId>
 			<artifactId>extentreports</artifactId>
 			<version>5.1.2</version>
 		</dependency>
 
+		<!-- ================================================== -->
 		<!-- Allure TestNG -->
+		<!-- ================================================== -->
+
 		<dependency>
 			<groupId>io.qameta.allure</groupId>
 			<artifactId>allure-testng</artifactId>
@@ -104,29 +132,122 @@
 	</dependencies>
 
 	<build>
+
 		<plugins>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.5.4</version>
-				<configuration>
-					<properties>
-						<property>
-							<name>listener</name>
-							<value>io.qameta.allure.testng.AllureTestNg</value>
-						</property>
-					</properties>
-				</configuration>
-			</plugin>
+			<!-- ================================================== -->
+			<!-- Java Compiler -->
+			<!-- ================================================== -->
 
 			<plugin>
+
+				<groupId>org.apache.maven.plugins</groupId>
+
+				<artifactId>maven-compiler-plugin</artifactId>
+
+				<version>3.15.0</version>
+
+				<configuration>
+
+					<release>21</release>
+
+				</configuration>
+
+			</plugin>
+
+
+			<!-- ================================================== -->
+			<!-- Maven Surefire -->
+			<!-- ================================================== -->
+
+			<plugin>
+
+				<groupId>org.apache.maven.plugins</groupId>
+
+				<artifactId>maven-surefire-plugin</artifactId>
+
+				<version>3.5.4</version>
+
+			</plugin>
+
+
+			<!-- ================================================== -->
+			<!-- Allure Maven -->
+			<!-- ================================================== -->
+
+			<plugin>
+
 				<groupId>io.qameta.allure</groupId>
+
 				<artifactId>allure-maven</artifactId>
+
 				<version>2.12.0</version>
+
+			</plugin>
+
+
+			<!-- ================================================== -->
+			<!-- Maven Clean -->
+			<!-- ================================================== -->
+
+			<plugin>
+
+				<groupId>org.apache.maven.plugins</groupId>
+
+				<artifactId>maven-clean-plugin</artifactId>
+
+				<version>3.4.1</version>
+
+				<configuration>
+
+					<filesets>
+
+						<!-- ====================================== -->
+						<!-- Extent Reports -->
+						<!-- ====================================== -->
+
+						<fileset>
+
+							<directory>
+								${project.basedir}/Reports
+							</directory>
+
+						</fileset>
+
+
+						<!-- ====================================== -->
+						<!-- Allure Reports -->
+						<!-- ====================================== -->
+
+						<fileset>
+
+							<directory>
+								${project.basedir}/Allure-Reports
+							</directory>
+
+						</fileset>
+
+
+						<!-- ====================================== -->
+						<!-- TestNG Output -->
+						<!-- ====================================== -->
+
+						<fileset>
+
+							<directory>
+								${project.basedir}/test-output
+							</directory>
+
+						</fileset>
+
+					</filesets>
+
+				</configuration>
+
 			</plugin>
 
 		</plugins>
+
 	</build>
 
 </project>
