@@ -22,7 +22,7 @@ public class KeywordExecutor {
 	private final Map<String, KeywordAction> keywordMap = new HashMap<>();
 
 	// ==========================================================
-	// Constructor
+	// CONSTRUCTOR
 	// ==========================================================
 
 	public KeywordExecutor() {
@@ -69,7 +69,7 @@ public class KeywordExecutor {
 	}
 
 	// ==========================================================
-	// Browser Lifecycle
+	// BROWSER LIFECYCLE
 	// ==========================================================
 
 	public void openBrowser(String browser) {
@@ -83,7 +83,7 @@ public class KeywordExecutor {
 	}
 
 	// ==========================================================
-	// Execute Keyword
+	// EXECUTE KEYWORD
 	// ==========================================================
 
 	public void execute(TestStep step) {
@@ -93,13 +93,13 @@ public class KeywordExecutor {
 		String stepName = AllureManager.buildKeywordStep(keywordName, step.getObjectName(), step.getTestData());
 
 		// ======================================================
-		// Statistics
+		// STATISTICS
 		// ======================================================
 
 		FrameworkStatistics.incrementTotal();
 
 		// ======================================================
-		// Find Keyword Action
+		// FIND KEYWORD
 		// ======================================================
 
 		KeywordAction action = keywordMap.get(keywordName.toLowerCase());
@@ -114,8 +114,6 @@ public class KeywordExecutor {
 
 		/*
 		 * Start keyword logging context.
-		 *
-		 * FrameworkLogger.pass() and fail() will now temporarily store their messages.
 		 */
 		FrameworkLogger.startKeywordExecution();
 
@@ -125,88 +123,121 @@ public class KeywordExecutor {
 			// ALLURE
 			// ==================================================
 
-			/*
-			 * Keep the Allure keyword step open while:
-			 *
-			 * 1. Keyword executes 2. Screenshot is captured 3. Screenshot is attached
-			 */
 			Allure.step(stepName, () -> {
 
 				try {
 
-					// ==================================
-					// 1. Execute Keyword
-					// ==================================
+					// ==========================================
+					// 1. EXECUTE KEYWORD
+					// ==========================================
 
 					action.execute(step);
 
-					// ==================================
-					// 2. PASS Screenshot
-					// ==================================
-
-					String screenshotPath = null;
+					// ==========================================
+					// 2. SCREENSHOT CONFIGURATION
+					// ==========================================
 
 					boolean capturePassScreenshot = "true"
 							.equalsIgnoreCase(ConfigUtils.getProperty("capture.pass.screenshot"));
 
-					if (keyword.getDriver() != null && capturePassScreenshot) {
+					boolean captureFailScreenshot = "true"
+							.equalsIgnoreCase(ConfigUtils.getProperty("capture.fail.screenshot"));
 
-						screenshotPath = ScreenshotUtils.capture(keyword.getDriver(), keywordName, ScreenshotType.PASS);
+					/*
+					 * Important:
+					 *
+					 * If either PASS or FAIL screenshot collection is enabled, we need the
+					 * successful step screenshot.
+					 *
+					 * Why?
+					 *
+					 * Example:
+					 *
+					 * PASS screenshot = false FAIL screenshot = true
+					 *
+					 * If the test later fails, we need:
+					 *
+					 * navigate input click failed step
+					 *
+					 * Therefore successful steps must also be captured when fail screenshots are
+					 * enabled.
+					 */
+					boolean captureSuccessfulStep = capturePassScreenshot || captureFailScreenshot;
+
+					String screenshotPath = null;
+
+					if (keyword.getDriver() != null && captureSuccessfulStep) {
+
+						/*
+						 * If PASS screenshot is enabled, initially store the screenshot in Pass.
+						 *
+						 * If the final test later fails, FrameworkListener will move the complete
+						 * testcase to Fail.
+						 */
+						ScreenshotType screenshotType;
+
+						if (capturePassScreenshot) {
+
+							screenshotType = ScreenshotType.PASS;
+
+						} else {
+
+							/*
+							 * PASS screenshot disabled, but FAIL screenshot enabled.
+							 *
+							 * Store the working screenshots in Fail because this test may eventually fail.
+							 */
+							screenshotType = ScreenshotType.FAIL;
+						}
+
+						screenshotPath = ScreenshotUtils.capture(keyword.getDriver(), keywordName, screenshotType);
 					}
 
-					// ==================================
-					// 3. PASS Message
-					// ==================================
+					// ==========================================
+					// 3. PASS MESSAGE
+					// ==========================================
 
 					String passMessage = FrameworkLogger.getLastPassMessage();
 
-					/*
-					 * If the keyword did not generate its own FrameworkLogger.pass() message, use
-					 * the standard keyword description.
-					 */
 					if (passMessage == null || passMessage.isBlank()) {
 
 						passMessage = stepName;
 					}
 
-					// ==================================
+					// ==========================================
 					// 4. EXTENT PASS
-					// ==================================
+					// ==========================================
 
-					/*
-					 * IMPORTANT:
-					 *
-					 * Screenshot is attached directly to this PASS log entry.
-					 *
-					 * It will NOT appear separately at the top of the report.
-					 */
 					ExtentTestManager.pass(passMessage, screenshotPath);
 
-					// ==================================
-					// 5. Statistics
-					// ==================================
+					// ==========================================
+					// 5. STATISTICS
+					// ==========================================
 
 					FrameworkStatistics.incrementPassed();
 
 				} catch (Exception e) {
 
-					// ================================
-					// FAIL Screenshot
-					// ================================
-
-					String screenshotPath = null;
+					// ==========================================
+					// FAILURE SCREENSHOT CONFIGURATION
+					// ==========================================
 
 					boolean captureFailScreenshot = "true"
 							.equalsIgnoreCase(ConfigUtils.getProperty("capture.fail.screenshot"));
 
+					String screenshotPath = null;
+
+					/*
+					 * Only capture the failed step when fail screenshot collection is enabled.
+					 */
 					if (keyword.getDriver() != null && captureFailScreenshot) {
 
 						screenshotPath = ScreenshotUtils.capture(keyword.getDriver(), keywordName, ScreenshotType.FAIL);
 					}
 
-					// ================================
-					// FAIL Message
-					// ================================
+					// ==========================================
+					// FAIL MESSAGE
+					// ==========================================
 
 					String failMessage = FrameworkLogger.getLastFailMessage();
 
@@ -215,18 +246,14 @@ public class KeywordExecutor {
 						failMessage = "Keyword Failed : " + keywordName + " | Reason : " + e.getMessage();
 					}
 
-					// ================================
+					// ==========================================
 					// EXTENT FAIL
-					// ================================
+					// ==========================================
 
-					/*
-					 * One FAIL row + its screenshot.
-					 */
 					ExtentTestManager.fail(failMessage, screenshotPath);
 
 					/*
-					 * Allure will mark this keyword step as failed because the exception is
-					 * re-thrown.
+					 * Allure marks this keyword as failed because the exception is re-thrown.
 					 */
 					throw e;
 				}
@@ -235,9 +262,7 @@ public class KeywordExecutor {
 		} catch (Exception e) {
 
 			/*
-			 * Do NOT call FrameworkLogger.fail() here.
-			 *
-			 * The FAIL Extent row was already created inside the Allure keyword step.
+			 * The FAIL Extent row has already been created inside the Allure keyword step.
 			 */
 
 			FrameworkStatistics.incrementFailed();
@@ -247,7 +272,7 @@ public class KeywordExecutor {
 		} finally {
 
 			/*
-			 * Clear the keyword logging context.
+			 * Clear keyword logging context.
 			 */
 			FrameworkLogger.endKeywordExecution();
 		}

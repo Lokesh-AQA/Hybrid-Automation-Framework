@@ -1,9 +1,9 @@
 package listeners;
 
+import java.io.File;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -12,14 +12,14 @@ import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.Status;
 
-import enums.ScreenshotType;
 import reports.ExtentManager;
 import reports.ExtentTestManager;
 import utils.AllureManager;
 import utils.ConfigUtils;
-import utils.DriverManager;
+import utils.FrameworkLogger;
 import utils.RetryAnalyzer;
 import utils.ScreenshotUtils;
+import utils.ScreenshotWordUtils;
 
 public class FrameworkListener implements ITestListener {
 
@@ -39,14 +39,19 @@ public class FrameworkListener implements ITestListener {
 		EXECUTED_BROWSERS.add(browser);
 
 		/*
-		 * IMPORTANT:
+		 * Start screenshot handling for this test attempt.
 		 *
-		 * New Extent architecture:
+		 * This:
 		 *
-		 * Reports/ └── Date-Time/ └── ExtentReport.html
-		 *
-		 * There is NO testcase-specific ExtentReports object anymore.
+		 * 1. Stores current test case name 2. Resets screenshot counter 3. Removes
+		 * screenshots from previous retry
 		 */
+		ScreenshotUtils.startTest(result.getName());
+
+		// ======================================================
+		// EXTENT TEST
+		// ======================================================
+
 		ExtentTest test = ExtentManager.getExtentReports()
 				.createTest(result.getTestContext().getName() + " [" + browser + "]");
 
@@ -56,26 +61,16 @@ public class FrameworkListener implements ITestListener {
 
 		test.assignCategory(ConfigUtils.getRequiredProperty("testing.type"));
 
-		/*
-		 * Store current ExtentTest in ThreadLocal.
-		 */
 		ExtentTestManager.setTest(test);
 
 		ExtentTestManager.resetStepNumber();
 
-		/*
-		 * Do not use FrameworkLogger here.
-		 *
-		 * Otherwise this becomes a numbered execution row.
-		 */
 		test.log(Status.INFO, "Test Execution Started");
 
-		/*
-		 * Current execution attempt.
-		 *
-		 * Original execution = Attempt 1 First retry = Attempt 2 Second retry = Attempt
-		 * 3
-		 */
+		// ======================================================
+		// RETRY INFORMATION
+		// ======================================================
+
 		int retryCount = RetryAnalyzer.getCurrentRetryCount();
 
 		int currentAttempt = retryCount + 1;
@@ -89,9 +84,10 @@ public class FrameworkListener implements ITestListener {
 
 		test.log(Status.INFO, attemptMessage);
 
-		/*
-		 * Allure.
-		 */
+		// ======================================================
+		// ALLURE
+		// ======================================================
+
 		AllureManager.logInfo(
 				"Test Started : " + result.getName() + " | Browser : " + browser + " | Attempt : " + currentAttempt);
 	}
@@ -109,36 +105,73 @@ public class FrameworkListener implements ITestListener {
 
 		int totalAttempts = retryCount + 1;
 
-		/*
-		 * Final PASS.
-		 */
+		// ======================================================
+		// EXTENT
+		// ======================================================
+
 		if (ExtentTestManager.getTest() != null) {
 
 			ExtentTestManager.getTest().pass("Test Passed");
 		}
 
+		// ======================================================
+		// ALLURE
+		// ======================================================
+
 		AllureManager.logPass("Test Passed");
 
-		/*
-		 * Retry information.
-		 */
+		// ======================================================
+		// RETRY INFORMATION
+		// ======================================================
+
 		addRetryInformation(retryCount, maxRetry, totalAttempts, "PASSED");
 
-		/*
-		 * Cleanup.
-		 *
-		 * IMPORTANT:
-		 *
-		 * Do NOT call:
-		 *
-		 * ExtentManager.removeCurrentContext();
-		 *
-		 * because the new ExtentManager does not have testcase-level ThreadLocal
-		 * ExtentReports.
-		 */
+		// ======================================================
+		// PASS SCREENSHOT CONFIGURATION
+		// ======================================================
+
+		boolean capturePassScreenshot = isScreenshotEnabled("capture.pass.screenshot");
+
+		if (capturePassScreenshot) {
+
+			/*
+			 * Final result = PASS
+			 *
+			 * PASS screenshot collection is enabled.
+			 *
+			 * Screenshots are already inside:
+			 *
+			 * Screenshots/Pass/
+			 *
+			 * Create:
+			 *
+			 * TestCaseName.docx
+			 */
+			createFinalScreenshotWord(result, "Pass");
+
+		} else {
+
+			/*
+			 * Final result = PASS
+			 *
+			 * PASS screenshot collection is disabled.
+			 *
+			 * Remove any screenshots.
+			 *
+			 * No Pass Word document.
+			 */
+			ScreenshotUtils.deleteTestCaseScreenshots(result.getName());
+		}
+
+		// ======================================================
+		// CLEANUP
+		// ======================================================
+
 		ExtentTestManager.unload();
 
 		AllureManager.stopTest();
+
+		ScreenshotUtils.removeContext();
 
 		RetryAnalyzer.reset();
 	}
@@ -156,14 +189,12 @@ public class FrameworkListener implements ITestListener {
 
 		int totalAttempts = retryCount + 1;
 
-		/*
-		 * Check whether another retry is available.
-		 */
 		boolean retryPossible = retryCount < maxRetry;
 
-		/*
-		 * Failure message.
-		 */
+		// ======================================================
+		// FAILURE MESSAGE
+		// ======================================================
+
 		String failureMessage = "Test Failed : " + result.getName();
 
 		Throwable throwable = result.getThrowable();
@@ -173,9 +204,6 @@ public class FrameworkListener implements ITestListener {
 			failureMessage += " | Reason : " + throwable.getMessage();
 		}
 
-		/*
-		 * Tell the report that another retry is scheduled.
-		 */
 		if (retryPossible) {
 
 			failureMessage += " | Retry scheduled";
@@ -188,24 +216,17 @@ public class FrameworkListener implements ITestListener {
 		addRetryInformation(retryCount, maxRetry, totalAttempts, retryPossible ? "RETRYING" : "FAILED");
 
 		// ======================================================
-		// FAILURE SCREENSHOT
+		// FIND LATEST FAILURE SCREENSHOT
 		// ======================================================
 
-		WebDriver driver = DriverManager.getDriver();
-
-		String screenshotPath = null;
-
-		if (driver != null && "true".equalsIgnoreCase(ConfigUtils.getProperty("capture.fail.screenshot"))) {
-
-			try {
-
-				screenshotPath = ScreenshotUtils.capture(driver, result.getName(), ScreenshotType.FAIL);
-
-			} catch (Exception e) {
-
-				AllureManager.logError("Unable to capture failure screenshot.", e);
-			}
-		}
+		/*
+		 * KeywordExecutor already captures the failed keyword screenshot when:
+		 *
+		 * capture.fail.screenshot=true
+		 *
+		 * We don't capture another screenshot here.
+		 */
+		String screenshotPath = findLatestScreenshot(result.getName());
 
 		// ======================================================
 		// EXTENT FAILURE
@@ -223,9 +244,6 @@ public class FrameworkListener implements ITestListener {
 				ExtentTestManager.getTest().fail(failureMessage);
 			}
 
-			/*
-			 * Exception details.
-			 */
 			if (throwable != null) {
 
 				ExtentTestManager.getTest().fail(throwable);
@@ -243,31 +261,108 @@ public class FrameworkListener implements ITestListener {
 			AllureManager.logError("Failure Exception", throwable);
 		}
 
-		/*
-		 * Attach screenshot to Allure.
-		 */
+		// ======================================================
+		// ALLURE SCREENSHOT
+		// ======================================================
+
 		if (screenshotPath != null && !screenshotPath.isBlank()) {
 
 			AllureManager.attachScreenshot("Failed Test Screenshot", screenshotPath);
 		}
 
 		// ======================================================
-		// CLEANUP
+		// RETRY
 		// ======================================================
 
-		/*
-		 * If another retry is going to happen, do NOT reset RetryAnalyzer yet.
-		 *
-		 * TestNG will call onTestStart() again.
-		 */
-		if (!retryPossible) {
+		if (retryPossible) {
+
+			/*
+			 * IMPORTANT:
+			 *
+			 * Do NOT create the final Fail Word yet.
+			 *
+			 * TestNG will execute the next attempt.
+			 *
+			 * ScreenshotUtils.startTest() will remove screenshots from this failed attempt.
+			 */
 
 			ExtentTestManager.unload();
 
 			AllureManager.stopTest();
 
-			RetryAnalyzer.reset();
+			ScreenshotUtils.removeContext();
+
+			return;
 		}
+
+		// ======================================================
+		// FINAL FAILURE
+		// ======================================================
+
+		boolean captureFailScreenshot = isScreenshotEnabled("capture.fail.screenshot");
+
+		if (captureFailScreenshot) {
+
+			/*
+			 * Final result = FAIL
+			 *
+			 * Failure screenshots are enabled.
+			 *
+			 * Case:
+			 *
+			 * capture.pass.screenshot=true capture.fail.screenshot=true
+			 *
+			 * Successful screenshots are currently in:
+			 *
+			 * Screenshots/Pass/
+			 *
+			 * Failed step screenshot is in:
+			 *
+			 * Screenshots/Fail/
+			 *
+			 * Therefore move the complete successful flow from Pass -> Fail.
+			 */
+			boolean capturePassScreenshot = isScreenshotEnabled("capture.pass.screenshot");
+
+			if (capturePassScreenshot) {
+
+				ScreenshotUtils.moveTestCaseScreenshots(result.getName(), "Pass", "Fail");
+			}
+
+			/*
+			 * Now Fail contains:
+			 *
+			 * 001_navigate 002_input 003_click 004_failedStep
+			 *
+			 * Create the final Word document.
+			 */
+			createFinalScreenshotWord(result, "Fail");
+
+		} else {
+
+			/*
+			 * Final result = FAIL
+			 *
+			 * Failure screenshot collection is disabled.
+			 *
+			 * Remove all screenshots.
+			 *
+			 * No Fail folder should remain with screenshots. No Word document.
+			 */
+			ScreenshotUtils.deleteTestCaseScreenshots(result.getName());
+		}
+
+		// ======================================================
+		// CLEANUP
+		// ======================================================
+
+		ExtentTestManager.unload();
+
+		AllureManager.stopTest();
+
+		ScreenshotUtils.removeContext();
+
+		RetryAnalyzer.reset();
 	}
 
 	// ==========================================================
@@ -285,26 +380,233 @@ public class FrameworkListener implements ITestListener {
 
 		String message = "Test Skipped : " + result.getName();
 
+		// ======================================================
+		// EXTENT
+		// ======================================================
+
 		if (ExtentTestManager.getTest() != null) {
 
 			ExtentTestManager.getTest().skip(message);
 		}
 
+		// ======================================================
+		// ALLURE
+		// ======================================================
+
 		AllureManager.logWarn(message);
 
-		/*
-		 * Retry information.
-		 */
+		// ======================================================
+		// RETRY INFORMATION
+		// ======================================================
+
 		addRetryInformation(retryCount, maxRetry, totalAttempts, "SKIPPED");
 
 		/*
-		 * Cleanup.
+		 * No screenshot Word document for skipped tests.
 		 */
+		ScreenshotUtils.deleteTestCaseScreenshots(result.getName());
+
+		// ======================================================
+		// CLEANUP
+		// ======================================================
+
 		ExtentTestManager.unload();
 
 		AllureManager.stopTest();
 
+		ScreenshotUtils.removeContext();
+
 		RetryAnalyzer.reset();
+	}
+
+	// ==========================================================
+	// CREATE FINAL SCREENSHOT WORD
+	// ==========================================================
+
+	private void createFinalScreenshotWord(ITestResult result, String resultFolder) {
+
+		try {
+
+			String testCaseName = result.getName();
+
+			if (testCaseName == null || testCaseName.isBlank()) {
+
+				testCaseName = "TestCase";
+			}
+
+			/*
+			 * ScreenshotWordUtils reads:
+			 *
+			 * Screenshots/Pass/
+			 *
+			 * OR
+			 *
+			 * Screenshots/Fail/
+			 */
+			ScreenshotWordUtils.createWord(testCaseName, resultFolder);
+
+			/*
+			 * Word document has now been created.
+			 *
+			 * Remove individual PNG files.
+			 *
+			 * Final folder will contain only:
+			 *
+			 * TestCaseName.docx
+			 */
+			deleteScreenshotImages(testCaseName, resultFolder);
+
+		} catch (Exception e) {
+
+			FrameworkLogger.error("Unable to generate final screenshot Word " + "for test : " + result.getName(), e);
+		}
+	}
+
+	// ==========================================================
+	// FIND LATEST SCREENSHOT
+	// ==========================================================
+
+	/**
+	 * Finds the latest screenshot belonging to the test case across BOTH Pass and
+	 * Fail folders.
+	 *
+	 * This is important because:
+	 *
+	 * PASS screenshots can be in Pass/ FAILED keyword screenshot can be in Fail/
+	 *
+	 * We must select the newest screenshot regardless of which folder contains it.
+	 */
+	private String findLatestScreenshot(String testCaseName) {
+
+		try {
+
+			String executionDirectory = ExtentManager.getExecutionDirectory();
+
+			File screenshotsDirectory = new File(executionDirectory, "Screenshots");
+
+			String safeTestCaseName = sanitizeFileName(testCaseName);
+
+			File passFolder = new File(screenshotsDirectory, "Pass");
+
+			File failFolder = new File(screenshotsDirectory, "Fail");
+
+			File latestPass = findLatestInFolder(passFolder, safeTestCaseName);
+
+			File latestFail = findLatestInFolder(failFolder, safeTestCaseName);
+
+			// ==================================================
+			// BOTH EXIST
+			// ==================================================
+
+			if (latestPass != null && latestFail != null) {
+
+				if (latestFail.lastModified() > latestPass.lastModified()) {
+
+					return latestFail.getAbsolutePath();
+				}
+
+				return latestPass.getAbsolutePath();
+			}
+
+			// ==================================================
+			// ONLY PASS EXISTS
+			// ==================================================
+
+			if (latestPass != null) {
+
+				return latestPass.getAbsolutePath();
+			}
+
+			// ==================================================
+			// ONLY FAIL EXISTS
+			// ==================================================
+
+			if (latestFail != null) {
+
+				return latestFail.getAbsolutePath();
+			}
+
+			return null;
+
+		} catch (Exception e) {
+
+			FrameworkLogger.warn("Unable to find latest screenshot : " + e.getMessage());
+
+			return null;
+		}
+	}
+
+	// ==========================================================
+	// FIND LATEST SCREENSHOT IN FOLDER
+	// ==========================================================
+
+	private File findLatestInFolder(File folder, String testCaseName) {
+
+		if (!folder.exists() || !folder.isDirectory()) {
+
+			return null;
+		}
+
+		File[] files = folder.listFiles(file -> file.isFile() && file.getName().startsWith(testCaseName + "_")
+				&& file.getName().toLowerCase().endsWith(".png"));
+
+		if (files == null || files.length == 0) {
+
+			return null;
+		}
+
+		File latest = files[0];
+
+		for (File file : files) {
+
+			if (file.lastModified() > latest.lastModified()) {
+
+				latest = file;
+			}
+		}
+
+		return latest;
+	}
+
+	// ==========================================================
+	// DELETE SCREENSHOT IMAGES
+	// ==========================================================
+
+	private void deleteScreenshotImages(String testCaseName, String resultFolder) {
+
+		try {
+
+			String executionDirectory = ExtentManager.getExecutionDirectory();
+
+			File folder = new File(executionDirectory, "Screenshots" + File.separator + resultFolder);
+
+			if (!folder.exists()) {
+
+				return;
+			}
+
+			String safeTestCaseName = sanitizeFileName(testCaseName);
+
+			File[] files = folder.listFiles(file -> file.isFile() && file.getName().startsWith(safeTestCaseName + "_")
+					&& file.getName().toLowerCase().endsWith(".png"));
+
+			if (files == null) {
+
+				return;
+			}
+
+			for (File file : files) {
+
+				if (!file.delete()) {
+
+					FrameworkLogger.warn("Unable to delete screenshot : " + file.getAbsolutePath());
+				}
+			}
+
+		} catch (Exception e) {
+
+			FrameworkLogger.warn("Unable to delete screenshot images : " + e.getMessage());
+		}
 	}
 
 	// ==========================================================
@@ -317,29 +619,14 @@ public class FrameworkListener implements ITestListener {
 
 		String retryStatus = retryAttempted ? "ATTEMPTED" : "NOT ATTEMPTED";
 
-		/*
-		 * Short single-line format.
-		 *
-		 * Example:
-		 *
-		 * Retry: ATTEMPTED | Retries: 2/2 | Attempts: 3 | Result: FAILED
-		 */
 		String retryMessage = "Retry: " + retryStatus + " | Retries: " + retryCount + "/" + maxRetry + " | Attempts: "
 				+ totalAttempts + " | Result: " + finalResult;
 
-		/*
-		 * Extent.
-		 *
-		 * Do NOT use ExtentTestManager.info() because that would consume a step number.
-		 */
 		if (ExtentTestManager.getTest() != null) {
 
 			ExtentTestManager.getTest().log(Status.INFO, retryMessage);
 		}
 
-		/*
-		 * Allure.
-		 */
 		AllureManager.logInfo(retryMessage);
 	}
 
@@ -376,5 +663,28 @@ public class FrameworkListener implements ITestListener {
 	public static String getExecutedBrowsers() {
 
 		return String.join(", ", EXECUTED_BROWSERS);
+	}
+
+	// ==========================================================
+	// SCREENSHOT CONFIGURATION
+	// ==========================================================
+
+	private boolean isScreenshotEnabled(String propertyName) {
+
+		return "true".equalsIgnoreCase(ConfigUtils.getProperty(propertyName));
+	}
+
+	// ==========================================================
+	// SANITIZE FILE NAME
+	// ==========================================================
+
+	private String sanitizeFileName(String name) {
+
+		if (name == null || name.isBlank()) {
+
+			return "TestCase";
+		}
+
+		return name.trim().replaceAll("[\\\\/:*?\"<>|]", "_").replaceAll("\\s+", "_");
 	}
 }
