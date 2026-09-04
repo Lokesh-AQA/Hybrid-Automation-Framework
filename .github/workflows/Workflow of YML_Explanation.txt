@@ -1,0 +1,17 @@
+GitHub
+   ↓
+Push to main / Pull Request / Manual Run
+   ↓
+Ubuntu machine
+   ↓
+Java 21
+   ↓
+Maven
+   ↓
+mvn clean test
+   ↓
+Your TestNG Framework
+   ↓
+Test Results
+   ↓
+GitHub Artifact

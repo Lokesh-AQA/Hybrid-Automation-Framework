@@ -13,3 +13,7 @@ Screenshots/
 
 # Excel Temporary Files
 ~$*.xlsx
+
+# Automation Reports
+Allure-Reports/
+Reports/

@@ -106,7 +106,6 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>7.11.0</version>
-			<scope>test</scope>
 		</dependency>
 
 		<!-- ================================================== -->
@@ -155,7 +154,6 @@
 
 			</plugin>
 
-
 			<!-- ================================================== -->
 			<!-- Maven Surefire -->
 			<!-- ================================================== -->
@@ -167,6 +165,16 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 
 				<version>3.5.4</version>
+
+				<configuration>
+
+					<suiteXmlFiles>
+
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+
+					</suiteXmlFiles>
+
+				</configuration>
 
 			</plugin>
 
