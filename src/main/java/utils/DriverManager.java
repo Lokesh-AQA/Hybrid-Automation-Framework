@@ -3,6 +3,7 @@ package utils;
 import org.openqa.selenium.WebDriver;
 
 public class DriverManager {
+	
 
     // Each thread gets its own WebDriver instance
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
