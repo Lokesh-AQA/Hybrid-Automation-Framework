@@ -13,238 +13,296 @@ import utils.GitUtils;
 
 public final class ExtentManager {
 
-    /*
-     * ==========================================================
-     * EXECUTION DIRECTORY
-     * ==========================================================
-     *
-     * Example:
-     *
-     * Reports/
-     * └── 2026-08-08_19-45-30/
-     *     └── ExtentReport.html
-     *
-     */
+	/*
+	 * ==========================================================
+	 * EXECUTION DIRECTORY
+	 * ==========================================================
+	 *
+	 * Example:
+	 *
+	 * Reports/
+	 * └── 2026-09-06_19-45-30/
+	 *     ├── Screenshots/
+	 *     │   ├── Pass/
+	 *     │   └── Fail/
+	 *     │
+	 *     └── Extent/
+	 *         ├── Screenshots/
+	 *         └── ExtentReport.html
+	 *
+	 */
 
-    private static String executionDirectory;
+	private static String executionDirectory;
 
-    /*
-     * ONE ExtentReports instance for the complete execution.
-     *
-     * ExtentReports is shared across parallel tests.
-     * ExtentTest itself is managed using ThreadLocal
-     * inside ExtentTestManager.
-     */
-    private static ExtentReports extentReports;
+	/*
+	 * ONE ExtentReports instance for the complete execution.
+	 *
+	 * ExtentReports is shared across parallel tests.
+	 * ExtentTest itself is managed using ThreadLocal
+	 * inside ExtentTestManager.
+	 */
+	private static ExtentReports extentReports;
 
-    private ExtentManager() {
-        // Utility class
-    }
+	private ExtentManager() {
+		// Utility class
+	}
 
-    // ==========================================================
-    // INITIALIZE EXECUTION DIRECTORY
-    // ==========================================================
+	// ==========================================================
+	// INITIALIZE EXECUTION DIRECTORY
+	// ==========================================================
 
-    public static synchronized void initializeExecutionDirectory() {
+	public static synchronized void initializeExecutionDirectory() {
 
-        if (executionDirectory != null) {
-            return;
-        }
+		if (executionDirectory != null) {
+			return;
+		}
 
-        String timestamp =
-                new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
-                        .format(new Date());
+		String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
 
-        executionDirectory =
-                System.getProperty("user.dir")
-                + File.separator
-                + "Reports"
-                + File.separator
-                + timestamp;
+		executionDirectory = System.getProperty("user.dir") + File.separator + "Reports" + File.separator + timestamp;
 
-        File directory = new File(executionDirectory);
+		File directory = new File(executionDirectory);
 
-        if (!directory.exists()) {
+		if (!directory.exists()) {
 
-            if (!directory.mkdirs()) {
+			if (!directory.mkdirs()) {
 
-                throw new IllegalStateException(
-                        "Unable to create execution directory : "
-                        + executionDirectory);
-            }
-        }
-    }
+				throw new IllegalStateException(
+						"Unable to create execution directory : " + executionDirectory);
+			}
+		}
+	}
 
-    // ==========================================================
-    // INITIALIZE EXTENT REPORT
-    // ==========================================================
+	// ==========================================================
+	// INITIALIZE EXTENT REPORT
+	// ==========================================================
 
-    public static synchronized void initializeExtentReports() {
+	public static synchronized void initializeExtentReports() {
 
-        /*
-         * Prevent duplicate initialization.
-         */
-        if (extentReports != null) {
-            return;
-        }
+		/*
+		 * Prevent duplicate initialization.
+		 */
+		if (extentReports != null) {
+			return;
+		}
 
-        /*
-         * Make sure execution directory exists.
-         */
-        initializeExecutionDirectory();
+		/*
+		 * Make sure execution directory exists.
+		 */
+		initializeExecutionDirectory();
 
-        /*
-         * Extent report will be created directly inside
-         * the execution folder.
-         *
-         * Example:
-         *
-         * Reports/
-         * └── 2026-08-08_19-45-30/
-         *     └── ExtentReport.html
-         */
-        String reportPath =
-                executionDirectory
-                + File.separator
-                + "ExtentReport.html";
+		/*
+		 * ======================================================
+		 * EXTENT DIRECTORY
+		 * ======================================================
+		 *
+		 * Reports/<timestamp>/Extent/
+		 */
+		File extentDirectory = new File(executionDirectory, "Extent");
 
-        ExtentSparkReporter sparkReporter =
-                new ExtentSparkReporter(reportPath);
+		if (!extentDirectory.exists()) {
 
-        // ======================================================
-        // REPORT CONFIGURATION
-        // ======================================================
+			if (!extentDirectory.mkdirs() && !extentDirectory.exists()) {
 
-        sparkReporter.config()
-                .setDocumentTitle("Automation Test Report");
+				throw new IllegalStateException(
+						"Unable to create Extent directory : " + extentDirectory.getAbsolutePath());
+			}
+		}
 
-        sparkReporter.config()
-                .setReportName("Hybrid Automation Framework");
+		/*
+		 * ======================================================
+		 * EXTENT SCREENSHOT DIRECTORY
+		 * ======================================================
+		 *
+		 * Reports/<timestamp>/Extent/Screenshots/
+		 */
+		File extentScreenshotDirectory = new File(extentDirectory, "Screenshots");
 
-        sparkReporter.config()
-                .setTheme(Theme.DARK);
+		if (!extentScreenshotDirectory.exists()) {
 
-        // ======================================================
-        // CREATE EXTENT REPORT
-        // ======================================================
+			if (!extentScreenshotDirectory.mkdirs() && !extentScreenshotDirectory.exists()) {
 
-        extentReports = new ExtentReports();
+				throw new IllegalStateException(
+						"Unable to create Extent Screenshot directory : "
+								+ extentScreenshotDirectory.getAbsolutePath());
+			}
+		}
 
-        extentReports.attachReporter(sparkReporter);
+		/*
+		 * ======================================================
+		 * EXTENT REPORT PATH
+		 * ======================================================
+		 *
+		 * Reports/<timestamp>/Extent/ExtentReport.html
+		 */
+		String reportPath = new File(extentDirectory, "ExtentReport.html").getAbsolutePath();
 
-        // ======================================================
-        // SYSTEM INFORMATION
-        // ======================================================
+		ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
 
-        extentReports.setSystemInfo(
-                "Framework",
-                "Hybrid Automation Framework");
+		// ======================================================
+		// REPORT CONFIGURATION
+		// ======================================================
 
-        extentReports.setSystemInfo(
-                "Automation",
-                "Selenium + TestNG");
+		sparkReporter.config().setDocumentTitle("Automation Test Report");
 
-        extentReports.setSystemInfo(
-                "Language",
-                "Java");
+		sparkReporter.config().setReportName("Hybrid Automation Framework");
 
-        extentReports.setSystemInfo(
-                "Author",
-                ConfigUtils.getRequiredProperty("author"));
+		sparkReporter.config().setTheme(Theme.DARK);
 
-        extentReports.setSystemInfo(
-                "Testing Type",
-                ConfigUtils.getRequiredProperty("testing.type"));
+		// ======================================================
+		// CREATE EXTENT REPORT
+		// ======================================================
 
-        extentReports.setSystemInfo(
-                "Environment",
-                ConfigUtils.getRequiredProperty("environment"));
+		extentReports = new ExtentReports();
 
-        extentReports.setSystemInfo(
-                "Application",
-                ConfigUtils.getRequiredProperty("application.name"));
+		extentReports.attachReporter(sparkReporter);
 
-        extentReports.setSystemInfo(
-                "Build Version",
-                ConfigUtils.getRequiredProperty("build.version"));
+		// ======================================================
+		// SYSTEM INFORMATION
+		// ======================================================
 
-        extentReports.setSystemInfo(
-                "Git Branch",
-                GitUtils.getBranchName());
+		extentReports.setSystemInfo(
+				"Framework",
+				"Hybrid Automation Framework");
 
-        extentReports.setSystemInfo(
-                "Git Commit",
-                GitUtils.getCommitId());
+		extentReports.setSystemInfo(
+				"Automation",
+				"Selenium + TestNG");
 
-        extentReports.setSystemInfo(
-                "Executed By",
-                System.getProperty("user.name"));
+		extentReports.setSystemInfo(
+				"Language",
+				"Java");
 
-        extentReports.setSystemInfo(
-                "Operating System",
-                System.getProperty("os.name"));
+		extentReports.setSystemInfo(
+				"Author",
+				ConfigUtils.getRequiredProperty("author"));
 
-        extentReports.setSystemInfo(
-                "Java Version",
-                System.getProperty("java.version"));
-    }
+		extentReports.setSystemInfo(
+				"Testing Type",
+				ConfigUtils.getRequiredProperty("testing.type"));
 
-    // ==========================================================
-    // GET EXTENT REPORTS
-    // ==========================================================
+		extentReports.setSystemInfo(
+				"Environment",
+				ConfigUtils.getRequiredProperty("environment"));
 
-    public static ExtentReports getExtentReports() {
+		extentReports.setSystemInfo(
+				"Application",
+				ConfigUtils.getRequiredProperty("application.name"));
 
-        if (extentReports == null) {
+		extentReports.setSystemInfo(
+				"Build Version",
+				ConfigUtils.getRequiredProperty("build.version"));
 
-            throw new IllegalStateException(
-                    "Extent Report has not been initialized. "
-                    + "Make sure ExtentSuiteListener.onStart() "
-                    + "initializes the report first.");
-        }
+		extentReports.setSystemInfo(
+				"Git Branch",
+				GitUtils.getBranchName());
 
-        return extentReports;
-    }
+		extentReports.setSystemInfo(
+				"Git Commit",
+				GitUtils.getCommitId());
 
-    // ==========================================================
-    // GET EXECUTION DIRECTORY
-    // ==========================================================
+		extentReports.setSystemInfo(
+				"Executed By",
+				System.getProperty("user.name"));
 
-    public static String getExecutionDirectory() {
+		extentReports.setSystemInfo(
+				"Operating System",
+				System.getProperty("os.name"));
 
-        if (executionDirectory == null) {
+		extentReports.setSystemInfo(
+				"Java Version",
+				System.getProperty("java.version"));
+	}
 
-            throw new IllegalStateException(
-                    "Execution directory has not been initialized.");
-        }
+	// ==========================================================
+	// GET EXTENT REPORTS
+	// ==========================================================
 
-        return executionDirectory;
-    }
+	public static ExtentReports getExtentReports() {
 
-    // ==========================================================
-    // FLUSH REPORT
-    // ==========================================================
+		if (extentReports == null) {
 
-    public static synchronized void flush() {
+			throw new IllegalStateException(
+					"Extent Report has not been initialized. "
+							+ "Make sure ExtentSuiteListener.onStart() "
+							+ "initializes the report first.");
+		}
 
-        if (extentReports != null) {
+		return extentReports;
+	}
 
-            extentReports.flush();
-        }
-    }
+	// ==========================================================
+	// GET EXECUTION DIRECTORY
+	// ==========================================================
 
-    // ==========================================================
-    // CLEANUP
-    // ==========================================================
+	public static String getExecutionDirectory() {
 
-    public static synchronized void reset() {
+		if (executionDirectory == null) {
 
-        /*
-         * Used only if the framework itself needs to reset
-         * the Extent manager between completely separate
-         * JVM executions.
-         */
-        extentReports = null;
-        executionDirectory = null;
-    }
+			throw new IllegalStateException(
+					"Execution directory has not been initialized.");
+		}
+
+		return executionDirectory;
+	}
+
+	// ==========================================================
+	// GET EXTENT DIRECTORY
+	// ==========================================================
+
+	public static String getExtentDirectory() {
+
+		if (executionDirectory == null) {
+
+			throw new IllegalStateException(
+					"Execution directory has not been initialized.");
+		}
+
+		return new File(executionDirectory, "Extent").getAbsolutePath();
+	}
+
+	// ==========================================================
+	// GET EXTENT SCREENSHOT DIRECTORY
+	// ==========================================================
+
+	public static String getExtentScreenshotDirectory() {
+
+		if (executionDirectory == null) {
+
+			throw new IllegalStateException(
+					"Execution directory has not been initialized.");
+		}
+
+		return new File(
+				getExtentDirectory(),
+				"Screenshots").getAbsolutePath();
+	}
+
+	// ==========================================================
+	// FLUSH REPORT
+	// ==========================================================
+
+	public static synchronized void flush() {
+
+		if (extentReports != null) {
+
+			extentReports.flush();
+		}
+	}
+
+	// ==========================================================
+	// CLEANUP
+	// ==========================================================
+
+	public static synchronized void reset() {
+
+		/*
+		 * Used only if the framework itself needs to reset
+		 * the Extent manager between completely separate
+		 * JVM executions.
+		 */
+		extentReports = null;
+
+		executionDirectory = null;
+	}
 }

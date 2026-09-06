@@ -9,7 +9,6 @@ import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.Status;
 
 import reports.ExtentManager;
@@ -236,12 +235,11 @@ public class FrameworkListener implements ITestListener {
 
 			if (screenshotPath != null && !screenshotPath.isBlank()) {
 
-				ExtentTestManager.getTest().fail(failureMessage,
-						MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
+				ExtentTestManager.fail(failureMessage, screenshotPath);
 
 			} else {
 
-				ExtentTestManager.getTest().fail(failureMessage);
+				ExtentTestManager.fail(failureMessage);
 			}
 
 			if (throwable != null) {
