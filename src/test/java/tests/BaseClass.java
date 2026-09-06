@@ -7,10 +7,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 
-import com.aventstack.extentreports.ExtentTest;
-
 import executor.KeywordExecutor;
-import reports.ExtentManager;
 import reports.ExtentTestManager;
 import utils.AllureManager;
 import utils.ConfigUtils;
@@ -45,25 +42,6 @@ public class BaseClass {
 		LogContext.setThreadId();
 
 		LogContext.setBrowser(browser);
-
-		// ======================================================
-		// Extent Report
-		// ======================================================
-
-		/*
-		 * ExtentSuiteListener initializes ONE ExtentReports instance for the complete
-		 * suite.
-		 *
-		 * Each TestNG test method gets its own ExtentTest.
-		 *
-		 * ExtentTestManager stores the ExtentTest in ThreadLocal so parallel executions
-		 * remain isolated.
-		 */
-		ExtentTest extentTest = ExtentManager.getExtentReports().createTest(method.getName());
-
-		ExtentTestManager.setTest(extentTest);
-
-		ExtentTestManager.resetStepNumber();
 
 		// ======================================================
 		// Framework Statistics
